@@ -42,7 +42,7 @@ curl http://127.0.0.1:3000/health
 另开一个终端，在仓库根目录执行：
 
 ```bash
-nsh run frontend/App.tsx --target macos
+nsh run frontend/nsh/App.tsx --target macos
 ```
 
 如果只想先看界面，可以直接启动，不填写 token。此时应用使用 Spotify、Notion、Figma、iCloud+ 和 ChatGPT 演示数据。
@@ -82,8 +82,8 @@ nsh run frontend/App.tsx --target macos
 前端检查：
 
 ```bash
-nsh check frontend
-nsh test frontend
+nsh check frontend/nsh
+nsh test frontend/nsh
 ```
 
 后端检查：

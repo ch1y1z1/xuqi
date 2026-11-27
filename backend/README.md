@@ -39,3 +39,17 @@ Authorization: Bearer xuqi_...
 - `POST /api/v1/import`
 
 目录表和缓存接口已经包含在迁移中。价格源同步任务会在目录数据源确定后接入，用户订阅保存的实际金额不会被目录更新覆盖。
+
+## Web 前端同源托管
+
+构建 `frontend/web` 后，后端会把 `../frontend/web/dist` 作为单页应用静态目录托管；前端路由回退到 `index.html`。可以用 `XUQI_WEB_DIST` 改成其他产物目录：
+
+```bash
+cd ../frontend/web
+npm install
+npm run build
+cd ../../backend
+XUQI_WEB_DIST=../frontend/web/dist cargo run -- serve
+```
+
+开发期 Vite 会把 `/api` 代理到 `127.0.0.1:3000`，不依赖浏览器 CORS。如果确实需要跨域直连后端，用逗号分隔的 `CORS_ORIGINS` 明确允许来源；未设置时不放行跨域来源。生产同源部署不需要跨域来源。

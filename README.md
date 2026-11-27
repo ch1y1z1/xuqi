@@ -45,20 +45,29 @@ cargo run -- serve
 
 ## 前端快速开始
 
-前端位于 `frontend/`，使用 NSH TSX 编写，同一套布局适配手机竖屏和 macOS 宽窗口。
+前端按客户端拆分在 `frontend/`。NSH 端位于 `frontend/nsh/`，使用 NSH TSX 编写；Web 原生前端位于 `frontend/web/`。
 
 ```bash
-nsh run frontend/App.tsx
+nsh run frontend/nsh/App.tsx
 ```
 
 在 macOS 上可以直接运行原生窗口：
 
 ```bash
-nsh run frontend/App.tsx --target macos
+nsh run frontend/nsh/App.tsx --target macos
 ```
 
-前端没有填写 token 时使用演示数据。打开设置页后，可以填写自托管后端地址和 Bearer Token，连接当前 Axum API。
+Web 端开发和构建：
+
+```bash
+cd frontend/web
+npm install
+npm run dev
+npm run build
+```
+
+构建后，Axum 默认同源托管 `frontend/web/dist`；可用 `XUQI_WEB_DIST` 指向其他产物目录。前端没有填写 token 时使用演示数据。打开设置页后，可以填写自托管后端地址和 Bearer Token，连接当前 Axum API。
 
 ## 状态
 
-后端首版已经可运行，包含用户令牌认证、订阅账本、付款记录、扣费渠道、概览、日历、目录查询、JSON 导入导出和 SQLite 迁移。前端首版已经加入 `frontend/`，目录上游同步任务仍在后续阶段。macOS 测试步骤见 [测试交接文档](docs/macOS测试交接.md)。
+后端首版已经可运行，包含用户令牌认证、订阅账本、付款记录、扣费渠道、概览、日历、目录查询、JSON 导入导出和 SQLite 迁移。NSH 前端首版已经加入 `frontend/nsh/`，Web 前端位于 `frontend/web/`，目录上游同步任务仍在后续阶段。macOS 测试步骤见 [测试交接文档](docs/macOS测试交接.md)。

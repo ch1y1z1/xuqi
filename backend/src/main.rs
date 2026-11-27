@@ -3,11 +3,15 @@ mod error;
 mod handlers;
 mod models;
 
-use std::{net::SocketAddr, path::Path, str::FromStr};
+use std::{
+    net::SocketAddr,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use anyhow::Context;
 use axum::{
-    http::Method,
+    http::{HeaderValue, Method},
     middleware,
     routing::{get, patch, post},
     Router,
@@ -22,6 +26,7 @@ use sqlx::{
 use tokio::net::TcpListener;
 use tower_http::{
     cors::{Any, CorsLayer},
+    services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -195,23 +200,42 @@ fn build_router(state: AppState) -> Router {
             auth::middleware,
         ));
 
+    let web_dist = std::env::var("XUQI_WEB_DIST")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("../frontend/web/dist"));
+    let web_index = web_dist.join("index.html");
+    let spa_service = ServeDir::new(&web_dist).fallback(ServeFile::new(web_index));
+
     Router::new()
         .route("/health", get(health))
         .nest("/api/v1", protected)
-        .layer(
-            CorsLayer::new()
-                .allow_origin(Any)
-                .allow_methods([
-                    Method::GET,
-                    Method::POST,
-                    Method::PATCH,
-                    Method::DELETE,
-                    Method::OPTIONS,
-                ])
-                .allow_headers(Any),
-        )
+        .fallback_service(spa_service)
+        .layer(cors_layer())
         .layer(TraceLayer::new_for_http())
         .with_state(state)
+}
+
+fn cors_layer() -> CorsLayer {
+    let methods = [
+        Method::GET,
+        Method::POST,
+        Method::PATCH,
+        Method::DELETE,
+        Method::OPTIONS,
+    ];
+    let configured = std::env::var("CORS_ORIGINS").unwrap_or_default();
+    let origins = configured
+        .split(',')
+        .map(str::trim)
+        .filter(|origin| !origin.is_empty())
+        .filter_map(|origin| origin.parse::<HeaderValue>().ok())
+        .collect::<Vec<_>>();
+    let layer = CorsLayer::new().allow_methods(methods).allow_headers(Any);
+    if origins.is_empty() {
+        layer
+    } else {
+        layer.allow_origin(origins)
+    }
 }
 
 async fn shutdown_signal() {
